@@ -1,4 +1,6 @@
 package com.example.DonutQueue.Models;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -28,6 +30,7 @@ public class Order {
 	@OneToOne(fetch = FetchType.EAGER)
 	@MapsId
 	@JoinColumn(name = "client_id")
+	@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 	private Client client;
 	
 	public Order(){
@@ -52,9 +55,9 @@ public class Order {
 		this.orderDate = orderDate;
 	}
 	
-	public int getClientId() {
-		return clientId;
-	}
+	//public int getClientId() {
+	//	return clientId;
+	//}
 	
 	public void setClientId(int id) {
 		this.clientId = id;

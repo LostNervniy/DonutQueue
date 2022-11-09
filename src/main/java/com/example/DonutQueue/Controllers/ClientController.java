@@ -1,10 +1,10 @@
 package com.example.DonutQueue.Controllers;
 
-import com.example.DonutQueue.ErrorResponse;
 import com.example.DonutQueue.Exceptions.ResourceNotFoundException;
 import com.example.DonutQueue.Models.Client;
 import com.example.DonutQueue.Repositories.ClientRepository;
 import com.example.DonutQueue.Repositories.OrderRepository;
+import com.example.DonutQueue.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
@@ -40,9 +41,10 @@ public class ClientController {
 		}
 		
 		if (clients.isEmpty()){
-			return new ResponseEntity<>(new ErrorResponse("There are no clients"), HttpStatus.NO_CONTENT );
+			return new ResponseEntity<>( new Response( "Error", "There are no clients to fetch" ), HttpStatus.NO_CONTENT );
+			//return new ResponseEntity<>(new ErrorResponse("There are no clients"), HttpStatus.NO_CONTENT );
 		}else{
-			return new ResponseEntity<>( clients, HttpStatus.OK );
+			return new ResponseEntity<>( new Response( "Success", "Client list fetched", clients), HttpStatus.OK );
 		}
 	}
 	
@@ -53,9 +55,9 @@ public class ClientController {
 		Client client = clientRepository.findById( id ).orElse(null);
 		
 		if (client == null)
-			return new ResponseEntity<>(new ErrorResponse( "Client ID not found"), HttpStatus.BAD_REQUEST );
+			return new ResponseEntity<>(new Response( "Error" , "Client ID not found"), HttpStatus.BAD_REQUEST );
 		
-		return new ResponseEntity<>( client, HttpStatus.OK );
+		return new ResponseEntity<>( new Response( "Success", "Client fetched" , client), HttpStatus.OK );
 	}
 	
 	/**
@@ -67,11 +69,12 @@ public class ClientController {
 	 */
 	@PostMapping("/clients")
 	public ResponseEntity<Object> createClient(@RequestBody Client client){
-		
-		
 		//checks for sent client name
 		if (client.getName() == null || client.getName().trim().isEmpty() || client.getName().isEmpty()){
-			return new ResponseEntity<>(new ErrorResponse(  "Client name must be a string and not empty"),HttpStatus.BAD_REQUEST );
+			return new ResponseEntity<>(new Response(  "Error","Client name must be a string and not empty"),HttpStatus.BAD_REQUEST );
+		}
+		if(clientRepository.existsById(client.getId())){
+			return new ResponseEntity<>( new Response( "Error", "Client already exists" ), HttpStatus.BAD_REQUEST );
 		}
 		Client _client = new Client();
 		try(InputStream propFile = Files.newInputStream( Paths.get( "src/main/resources/config.properties" ) )) {
@@ -81,19 +84,19 @@ public class ClientController {
 					client.getId() >= Integer.parseInt(prop.getProperty( "CLIENT_ID_MIN" )) &&
 					client.getId() <= Integer.parseInt( prop.getProperty( "CLIENT_ID_MAX" ) )){
 				_client = clientRepository.save(new Client(client.getId(), client.getName(), true));
-				return new ResponseEntity<>( _client, HttpStatus.CREATED );
+				return new ResponseEntity<>(new Response( "Success", "New user created", _client), HttpStatus.CREATED );
 			}else if(client.getId() > Integer.parseInt( prop.getProperty( "PREMIUM_THRESHOLD" )) &&
 					client.getId() >= Integer.parseInt(prop.getProperty( "CLIENT_ID_MIN" )) &&
 					client.getId() <= Integer.parseInt( prop.getProperty( "CLIENT_ID_MAX" ) )){
 				_client = clientRepository.save(new Client(client.getId(), client.getName(), false));
-				return new ResponseEntity<>( _client, HttpStatus.CREATED );
+				return new ResponseEntity<>( new Response( "Success", "New user created", _client ), HttpStatus.CREATED );
 			}
 		} catch (Exception e){
-			return new ResponseEntity<>( new ErrorResponse(  "Config file is not set"), HttpStatus.BAD_REQUEST );
+			return new ResponseEntity<>( new Response( "Error", "Config file is not set"), HttpStatus.BAD_REQUEST );
 		}
 		
 		
-		return new ResponseEntity<>( _client, HttpStatus.BAD_REQUEST );
+		return new ResponseEntity<>(new Response( "Error", "Something unexpected went wrong" ), HttpStatus.BAD_REQUEST );
 	}
 	
 	//let's edit a client with his id
@@ -102,14 +105,14 @@ public class ClientController {
 		Client _client = clientRepository.findById( clientId ).orElse(null);
 		
 		if (_client == null)
-			return new ResponseEntity<>( new ErrorResponse( "Client ID not found"),HttpStatus.NO_CONTENT );
+			return new ResponseEntity<>( new Response( "Error","Client ID not found"),HttpStatus.NO_CONTENT );
 		
 		
 		_client.setId( client.getId() );
 		_client.setName( client.getName() );
 		_client.setPremium( client.getIsPremium() );
 		
-		return new ResponseEntity<>( clientRepository.save( _client ), HttpStatus.OK );
+		return new ResponseEntity<>(new Response("Success", "Client edited", clientRepository.save( _client )) , HttpStatus.OK );
 	}
 	
 	//deletes a client by his id
@@ -122,9 +125,9 @@ public class ClientController {
 			
 			clientRepository.deleteById( clientId );
 			
-			return new ResponseEntity<>( HttpStatus.NO_CONTENT );
+			return new ResponseEntity<>(new Response( "Success", "Client deleted" ), HttpStatus.NO_CONTENT );
 		}catch (org.springframework.dao.EmptyResultDataAccessException erdae){
-			return new ResponseEntity<>( new ErrorResponse( "No client to delete found" ),HttpStatus.BAD_REQUEST );
+			return new ResponseEntity<>( new Response( "Error", "No client to delete found" ),HttpStatus.BAD_REQUEST );
 		}
 		
 	}
@@ -135,9 +138,9 @@ public class ClientController {
 		List<Client> clients = clientRepository.findByIsPremium( true );
 		
 		if (clients.isEmpty()){
-			return new ResponseEntity<>(new ErrorResponse( "No clients found" ), HttpStatus.NO_CONTENT );
+			return new ResponseEntity<>(new Response("Error", "No premium clients found" ), HttpStatus.NO_CONTENT );
 		}
 		
-		return new ResponseEntity<>( clients, HttpStatus.OK );
+		return new ResponseEntity<>( new Response( "Success", "Client premium list fetched", clients), HttpStatus.OK );
 	}
 }

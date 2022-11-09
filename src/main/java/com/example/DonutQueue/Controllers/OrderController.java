@@ -1,12 +1,12 @@
 package com.example.DonutQueue.Controllers;
 
-import com.example.DonutQueue.ErrorResponse;
 import com.example.DonutQueue.Estimation;
 import com.example.DonutQueue.Exceptions.ResourceNotFoundException;
 import com.example.DonutQueue.Models.Client;
 import com.example.DonutQueue.Models.Order;
 import com.example.DonutQueue.Repositories.ClientRepository;
 import com.example.DonutQueue.Repositories.OrderRepository;
+import com.example.DonutQueue.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,23 +46,23 @@ public class OrderController {
 	public ResponseEntity<Object> createOrder(@PathVariable(value = "clientId") int clientId,
 	                                         @RequestBody Order orderReq) throws ResourceNotFoundException {
 		if (orderReq.getQuantity() < 1 || orderReq.getQuantity() > 50){
-			return new ResponseEntity<>( new ErrorResponse("Invalid input"),HttpStatus.BAD_REQUEST );
+			return new ResponseEntity<>( new Response("Error", "Invalid input"),HttpStatus.BAD_REQUEST );
 		}
 		
 		try{
 			Client client = clientRepository.findById( clientId ).orElse(null);
 			
 			if (client == null)
-				return new ResponseEntity<>(new ErrorResponse("Client ID does not exists"), HttpStatus.BAD_REQUEST );
+				return new ResponseEntity<>(new Response("Error", "Client ID does not exists"), HttpStatus.BAD_REQUEST );
 			
 			orderReq.setOrderDate( Instant.now().getEpochSecond());
 			orderReq.setClient( client );
 			
 			Order order = orderRepository.save( orderReq );
 			
-			return new ResponseEntity<>( order, HttpStatus.CREATED );
+			return new ResponseEntity<>( new Response( "Success", "Order for client accepted",order ), HttpStatus.CREATED );
 		}catch (org.springframework.dao.DataIntegrityViolationException ex){
-			return new ResponseEntity<>( new ErrorResponse("Client has already an order"), HttpStatus.BAD_REQUEST );
+			return new ResponseEntity<>( new Response("Error", "Client has already an order"), HttpStatus.BAD_REQUEST );
 		}
 		
 	}
@@ -72,9 +72,9 @@ public class OrderController {
 	public ResponseEntity<Object> deleteOrder(@PathVariable("clientId") int clientId){
 		try{
 			orderRepository.deleteById( clientId );
-			return new ResponseEntity<>( HttpStatus.NO_CONTENT );
+			return new ResponseEntity<>( new Response( "Success", "Order deleted" ), HttpStatus.OK );
 		}catch (org.springframework.dao.EmptyResultDataAccessException erdae){
-			return new ResponseEntity<>( new ErrorResponse( "No client to delete found" ),HttpStatus.BAD_REQUEST );
+			return new ResponseEntity<>( new Response( "Error", "Client has no order" ),HttpStatus.BAD_REQUEST );
 		}
 		
 	}
@@ -108,9 +108,9 @@ public class OrderController {
 			
 			Order nextOrder = orderList.get( 0 );
 			
-			return new ResponseEntity<>( nextOrder, HttpStatus.OK );
+			return new ResponseEntity<>( new Response( "Success", "Next order fetched", nextOrder ), HttpStatus.OK );
 		}catch(IndexOutOfBoundsException ioobe){
-			return new ResponseEntity<>( new ErrorResponse( "No order found" ), HttpStatus.OK );
+			return new ResponseEntity<>( new Response( "Error", "No order found" ), HttpStatus.OK );
 		}
 		
 		
@@ -133,9 +133,9 @@ public class OrderController {
 				order.setApproximatedWaitTimeInSeconds( (i+1)*300 );
 				orderList.set( i, order);
 			}
-			return new ResponseEntity<>( orderList, HttpStatus.OK );
+			return new ResponseEntity<>(new Response("Success", "Order queue fetched", orderList) , HttpStatus.OK );
 		}catch (IndexOutOfBoundsException ioobe){
-			return new ResponseEntity<>( new ErrorResponse( "No order found" ), HttpStatus.BAD_REQUEST );
+			return new ResponseEntity<>( new Response("Error", "No order found" ), HttpStatus.BAD_REQUEST );
 		}
 		
 	}
@@ -149,7 +149,7 @@ public class OrderController {
 				.orElse(null);
 		
 		if (order == null)
-			return new ResponseEntity<>(new ErrorResponse("Client ID does not exist or does not have an order"), HttpStatus.BAD_REQUEST );
+			return new ResponseEntity<>(new Response("Error", "Client ID does not exist or does not have an order"), HttpStatus.BAD_REQUEST );
 		
 		try{
 			//compare order date ASC
@@ -167,10 +167,11 @@ public class OrderController {
 			//I assume that he needs like ~5 minutes for every order
 			//before the order for the client
 			int estimatedTimeOfArrival = orderPosition * 300;
+			Estimation est = new Estimation( orderPosition, estimatedTimeOfArrival );
 			
-			return new ResponseEntity<>( new Estimation( orderPosition, estimatedTimeOfArrival ), HttpStatus.OK );
+			return new ResponseEntity<>( new Response("Success", "Position and estimated arrival fetched", est), HttpStatus.OK );
 		}catch (IndexOutOfBoundsException ioobe){
-			return new ResponseEntity<>( new ErrorResponse( "No order found" ), HttpStatus.BAD_REQUEST );
+			return new ResponseEntity<>( new Response( "Error","No order found" ), HttpStatus.BAD_REQUEST );
 		}
 		
 	}
