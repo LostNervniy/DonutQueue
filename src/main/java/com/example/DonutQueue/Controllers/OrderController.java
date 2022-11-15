@@ -102,7 +102,7 @@ public class OrderController {
 			//compare is premium DESC
 			Comparator<Order> compareByIsPremium = (o1, o2) -> Boolean.compare( o2.getClient().getIsPremium(), o1.getClient().getIsPremium() );
 			Comparator<Order> compareByIsPremiumAndOrderDate = compareByIsPremium.thenComparing( compareByOrderDate );
-			List<Order> orderList = new ArrayList<Order>( orderRepository.findAll());
+			List<Order> orderList = new ArrayList<Order>( (Collection<? extends Order>) orderRepository.findAll() );
 			orderList.sort(compareByIsPremiumAndOrderDate);
 			
 			
@@ -126,7 +126,7 @@ public class OrderController {
 			//compare is premium DESC
 			Comparator<Order> compareByIsPremium = (o1, o2) -> Boolean.compare( o2.getClient().getIsPremium(), o1.getClient().getIsPremium() );
 			Comparator<Order> compareByIsPremiumAndOrderDate = compareByIsPremium.thenComparing( compareByOrderDate );
-			List<Order> orderList = new ArrayList<Order>( orderRepository.findAll());
+			List<Order> orderList = new ArrayList<Order>( (Collection<? extends Order>) orderRepository.findAll() );
 			orderList.sort(compareByIsPremiumAndOrderDate);
 			for (int i = 0; i < orderList.size(); i++){
 				Order order = orderList.get( i );
@@ -157,7 +157,7 @@ public class OrderController {
 			//compare is premium DESC
 			Comparator<Order> compareByIsPremium = (o1, o2) -> Boolean.compare( o2.getClient().getIsPremium(), o1.getClient().getIsPremium() );
 			Comparator<Order> compareByIsPremiumAndOrderDate = compareByIsPremium.thenComparing( compareByOrderDate );
-			List<Order> orderList = new ArrayList<Order>( orderRepository.findAll());
+			List<Order> orderList = new ArrayList<Order>( (Collection<? extends Order>) orderRepository.findAll() );
 			orderList.sort(compareByIsPremiumAndOrderDate);
 			
 			//queue position

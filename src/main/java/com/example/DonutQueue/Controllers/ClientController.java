@@ -15,7 +15,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
 
@@ -35,13 +35,13 @@ public class ClientController {
 		List<Client> clients = new ArrayList<>();
 		
 		if (id == null){
-			clients.addAll(clientRepository.findAll());
+			clients.addAll( (Collection<? extends Client>) clientRepository.findAll() );
 		}else{
 			clients.addAll( clientRepository.findByClientId( id ) );
 		}
 		
 		if (clients.isEmpty()){
-			return new ResponseEntity<>( new Response( "Error", "There are no clients to fetch" ), HttpStatus.NO_CONTENT );
+			return new ResponseEntity<>( new Response( "Error", "There are no clients to fetch" ), HttpStatus.BAD_REQUEST );
 			//return new ResponseEntity<>(new ErrorResponse("There are no clients"), HttpStatus.NO_CONTENT );
 		}else{
 			return new ResponseEntity<>( new Response( "Success", "Client list fetched", clients), HttpStatus.OK );
@@ -105,8 +105,11 @@ public class ClientController {
 		Client _client = clientRepository.findById( clientId ).orElse(null);
 		
 		if (_client == null)
-			return new ResponseEntity<>( new Response( "Error","Client ID not found"),HttpStatus.NO_CONTENT );
+			return new ResponseEntity<>( new Response( "Error","Client ID not found"),HttpStatus.BAD_REQUEST );
 		
+	
+		if (client.getId() != clientId)
+			return new ResponseEntity<>( new Response("Error", "Can not manipulate client ID"), HttpStatus.BAD_REQUEST );
 		
 		_client.setId( client.getId() );
 		_client.setName( client.getName() );
@@ -125,7 +128,7 @@ public class ClientController {
 			
 			clientRepository.deleteById( clientId );
 			
-			return new ResponseEntity<>(new Response( "Success", "Client deleted" ), HttpStatus.NO_CONTENT );
+			return new ResponseEntity<>(new Response( "Success", "Client deleted" ), HttpStatus.BAD_REQUEST );
 		}catch (org.springframework.dao.EmptyResultDataAccessException erdae){
 			return new ResponseEntity<>( new Response( "Error", "No client to delete found" ),HttpStatus.BAD_REQUEST );
 		}
@@ -138,7 +141,7 @@ public class ClientController {
 		List<Client> clients = clientRepository.findByIsPremium( true );
 		
 		if (clients.isEmpty()){
-			return new ResponseEntity<>(new Response("Error", "No premium clients found" ), HttpStatus.NO_CONTENT );
+			return new ResponseEntity<>(new Response("Error", "No premium clients found" ), HttpStatus.BAD_REQUEST );
 		}
 		
 		return new ResponseEntity<>( new Response( "Success", "Client premium list fetched", clients), HttpStatus.OK );
