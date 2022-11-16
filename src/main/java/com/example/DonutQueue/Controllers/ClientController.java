@@ -92,7 +92,7 @@ public class ClientController {
 				return new ResponseEntity<>( new Response( "Success", "New user created", _client ), HttpStatus.CREATED );
 			}
 		} catch (Exception e){
-			return new ResponseEntity<>( new Response( "Error", "Config file is not set"), HttpStatus.BAD_REQUEST );
+			return new ResponseEntity<>( new Response( "Error", "Config file is not set"), HttpStatus.INTERNAL_SERVER_ERROR );
 		}
 		
 		

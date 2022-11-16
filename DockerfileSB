@@ -5,9 +5,10 @@ COPY .idea .idea
 COPY .mvn .mvn
 COPY pom.xml .
 COPY src src
+COPY ./DonutQueue-0.0.1-SNAPSHOT.jar .
 
-CMD ["./mvnw", "clean", "spring-boot:run"]
+#CMD ["./mvnw", "clean", "spring-boot:run"]
 
 
-#CMD ["java", "-jar", "/DonutQueue-0.0.1-SNAPSHOT.jar"]
+CMD ["java", "-jar", "/DonutQueue-0.0.1-SNAPSHOT.jar"]
 #CMD [".\\mvnw", "clean", "spring-boot:eun"]

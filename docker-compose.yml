@@ -9,7 +9,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_ROOT_HOST: '%'
     ports:
-      - 3307:3306
+      - 3306:3306
     volumes:
       - ./db-dump:/docker-entrypoint-initdb.d
   donut-api-service:
