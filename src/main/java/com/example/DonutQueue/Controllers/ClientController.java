@@ -37,7 +37,7 @@ public class ClientController {
 		if (id == null){
 			clients.addAll( (Collection<? extends Client>) clientRepository.findAll() );
 		}else{
-			clients.addAll( clientRepository.findByClientId( id ) );
+			clients.add( clientRepository.findByClientId( id ) );
 		}
 		
 		if (clients.isEmpty()){
@@ -128,7 +128,7 @@ public class ClientController {
 			
 			clientRepository.deleteById( clientId );
 			
-			return new ResponseEntity<>(new Response( "Success", "Client deleted" ), HttpStatus.BAD_REQUEST );
+			return new ResponseEntity<>(new Response( "Success", "Client deleted" ), HttpStatus.OK );
 		}catch (org.springframework.dao.EmptyResultDataAccessException erdae){
 			return new ResponseEntity<>( new Response( "Error", "No client to delete found" ),HttpStatus.BAD_REQUEST );
 		}

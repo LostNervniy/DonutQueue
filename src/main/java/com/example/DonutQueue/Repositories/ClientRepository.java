@@ -10,5 +10,5 @@ import java.util.List;
 @Repository
 public interface ClientRepository extends CrudRepository<Client, Integer> {
 	List<Client> findByIsPremium(boolean isPremium);
-	List<Client> findByClientId(int id);
+	Client findByClientId(int id);
 }
